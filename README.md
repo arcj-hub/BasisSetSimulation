@@ -24,5 +24,6 @@ The output is a .basis file compatible with conventional fitting software. The p
 
 # Reference
 
-This project utilizes functions from [FID-A](https://www.opensourceimaging.org/project/fid-a-advanced-processing-and-simulation-of-mr-spectroscopy/) and [Osprey](https://schorschinho.github.io/osprey/).
+This project utilizes functions from [FID-A](https://www.opensourceimaging.org/project/fid-a-advanced-processing-and-simulation-of-mr-spectroscopy/) and [Osprey](https://schorschinho.github.io/osprey/). If you find this work helpful or use any part of it in your research or publications, please consider citing it { xx NeuroLibre link } 
+
 
