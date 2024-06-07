@@ -7,6 +7,7 @@ It utilizes functions from [FID-A](https://www.opensourceimaging.org/project/fid
 To clone the repository, run the following command:
 
 `git clone https://github.com/arcj-hub/BasisSetSimulation.git`
+
 `cd BasisSetSimulation`
 
 Required Dependencies: FID-A
