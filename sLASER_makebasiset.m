@@ -6,13 +6,12 @@ close all;
 % Fast version by Muhammad G Saleh (Johns Hopkins University School of Medicine, 2019)
 
 % DESCRIPTION & MODIFICATIONS:
+% This script was modified by Niklaus Zölch & Jessica Archibald to include: 
 
-% This script was modified by Niklaus Zölch & Jessica Archibald 2023 to include: 
-
-%     a.	A 0 reference peak
-%     b.	A loop to run through all the metabolites
-%     c.	saving .raw, .png, and .mat files
-%     d.	output a .pdf and .basis file -> using modified functions from Osprey- Georg Oeltzschner, Johns Hopkins University 2019.
+%     a.	A 0 reference peak-  useful depending on the fiting software
+%     b.	A loop to run through the selected metabolites
+%     c.	Saving .raw, .png, and .mat files
+%     d.	Output a .pdf and .basis file -> using modified functions from Osprey- Georg Oeltzschner, Johns Hopkins University 2019.
 
 % USAGE:
 % This script simulates a semi-LASER  experiment with fully shaped refocusing 
@@ -59,6 +58,7 @@ close all;
 % OUTPUTS:
 % out               = Simulation results, summed over all space.
 
+ToolboxCheck
 % ************INPUT PARAMETERS**********************************
 % 
 % Define the variable Basis_name at the beginning of your script
