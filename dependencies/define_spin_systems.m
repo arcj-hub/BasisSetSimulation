@@ -1,6 +1,4 @@
-function [ sysETH,sysAcetate,sysAcac,sysSucc,sysGlyc,sysVal,sysAceton,sysbHBHM] = define_spin_systems( )
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+function [sysETH,sysAcetate,sysAcac,sysSucc,sysGlyc,sysVal,sysAceton,sysbHBHM] = define_spin_systems
 
 % Ethanol
 sysETH.shifts=[1.19;1.19;1.19;3.67;3.67];
