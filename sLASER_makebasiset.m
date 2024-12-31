@@ -1,3 +1,4 @@
+
 clear all;
 close all;
 % run_simSemiLASERShaped_fast.m
@@ -63,15 +64,15 @@ ToolboxCheck
 % 
 % Define the variable Basis_name at the beginning of your script
 basis_name = 'lcm_gamma_new.basis' ; %keep "_gamma_" 
+
 pathtofida='/Users/jessicaarchibald/Desktop/GLUATLAS/FID-A-master2022';
 addpath(genpath(pathtofida));
 folder_to_save=[pathtofida,'/GeneratedRawFiles/sLASER_JESS_2024/'];
 save_result=true;
 %refocWaveform='AM_REFOMAN6.pta'; %name of refocusing pulse waveform.
-Waveform='oit_800_6500.pta';
+Waveform='GOIA_tthk0.01_R120.txt';
 flip_angle=180;
-%refocWaveform='sampleRefocPulse.pta'; %name of refocusing pulse waveform.
-refTp=4.4496; %duration of refocusing pulses[ms]
+refTp=4.5008; %duration of refocusing pulses[ms]
 Npts=4096; %number of spectral points
 sw=4000; %spectral width [Hz]
 lw=2; %linewidth of the output spectrum [Hz]
@@ -95,8 +96,8 @@ y=linspace(-fovY/2,fovY/2,nY);
 %y=linspace(-1.06,1.20,nY); %y positions to simulate [cm]%
 %x=0;
 %y=0;
-te=32;%timing of the pulse sequence [ms]
-centreFreq=2.02; %Centre frequency of MR spectrum [ppm]
+te=30;%timing of the pulse sequence [ms]
+centreFreq=2.3; %Centre frequency of MR spectrum [ppm]
 %
 %PhCyc1=[0 0 0 0];  %phase cycling scheme of first refocusing pulse
 %PhCyc2=[0 0 90 90]; %phase cycling scheme of second refocusing pulse
@@ -117,6 +118,7 @@ shift_in_ppm=(4.65-centreFreq);
 %--------------------------------------------------------------------------
 %Niklaus : set inv / macht keinen unterschied oder?
 rfPulse=io_loadRFwaveform(Waveform,'inv',0);
+tw1=rfPulse.tw1; % to save the input value 
 %--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 sysRef.J=0;
@@ -128,16 +130,18 @@ sysRef.centreFreq=centreFreq;
 %
 [ ref] = run_mysLASERShaped_fast(rfPulse,refTp,Npts,sw,lw,Bfield,thkX,thkY,x,y,te,sysRef,flip_angle);
 %
+
 tau1=15; tau2=13;%fake timing
 refjustforppmrange=sim_press(Npts,sw,Bfield,lw,sysRef,tau1,tau2);
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
 % shift 
 % https://ch.mathworks.com/matlabcentral/newsreader/view_thread/243061 
-ppm_range=ref.ppm(1)-ref.ppm(end);
-ppm_per_point=ppm_range/size(ref.ppm,2);
-shift_in_points=round(shift_in_ppm/ppm_per_point);
-ref.fids=ref.fids.*exp(-1i*2*pi*shift_in_points*(0:1:(size(ref.fids,1)-1)).'/(size(ref.fids,1)));
+
+freqShift_hz=shift_in_ppm*(Bfield*42.577478); % in Hz
+%--------------------------------------------------------------------------------------
+ref.fids=ref.fids.*exp(-(1i*2*pi*freqShift_hz).*ref.t).';
+
 %--------------------------------------------------------------------------
 % Additional Metabolites
 [sysETH,sysAcetate,sysAcac,sysSucc,sysGlyc,sysVal,sysAceton,sysbHBHM]=define_spin_systems();
@@ -159,12 +163,15 @@ for met_nr=1:size(spinSysList,2);
     %-------------------------------------------------------------------------
     [ out] = run_mysLASERShaped_fast(rfPulse,refTp,Npts,sw,lw,Bfield,thkX,thkY,x,y,te,sys,flip_angle);
     % save out as
+    % Add `tw1` to the `out` structure
+    out.tw1 = tw1;
     % Save before the shift -
     save_out_mat=[folder_to_save,'matfiles_pre'];
     if (exist(save_out_mat,'dir')==0)
                  mkdir(save_out_mat);
     end
     save([save_out_mat,'/',spinSys],'out')
+
 
     %----------------------------------------------------------------------
     % effective voxel size
@@ -173,7 +180,8 @@ for met_nr=1:size(spinSysList,2);
     % Add shift here and later for every simulated 
     %
     %-------------------------------------------------------------------------
-    out.fids=out.fids.*exp(-1i*2*pi*shift_in_points*(0:1:(size(out.fids,1)-1)).'/(size(out.fids,1)));
+  
+    out.fids=out.fids.*exp(-(1i*2*pi*freqShift_hz).*ref.t).';
     %
     %effvox.fids=effvox.fids.*exp(-1i*2*pi*shift_in_points*(0:1:(size(effvox.fids,1)-1)).'/(size(effvox.fids,1)));
     %
@@ -223,6 +231,7 @@ end
 disp('Running fit_makeLCMBasis...');
 
 BASIS=fit_makeLCMBasis_2Jess(save_out_mat_end, false, [folder_to_save,'/', basis_name],'Philips','sLASER');
+
 % %Vizualize your created basis set 
 % figure;plot(BASIS.ppm,real(BASIS.specs));legend(BASIS.name)
 % set(gca,'xdir','reverse','XGrid','on')

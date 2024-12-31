@@ -87,6 +87,7 @@ for kk = 1:nMets
         f=[(-spectralwidth/2)+(spectralwidth/(2*sz(1))):spectralwidth/(sz(1)):(spectralwidth/2)-(spectralwidth/(2*sz(1)))];
         ppm=f/(Bo*42.577);
         ppm=-(ppm-4.65); % achtung 4.68 before
+        tw1 = temp.(basisFct{ll}).tw1;
 
         %temp.(basisFct{ll}).ppm = ppm - (4.68 - temp.(basisFct{1}).centerFreq);
         temp.(basisFct{ll}).ppm=ppm;
@@ -112,6 +113,8 @@ for kk = 1:nMets
     buffer.n(kk)                = temp.(basisFct{1}).sz(1);
     buffer.linewidth(kk)        = temp.(basisFct{1}).linewidth;
     buffer.Bo(kk)               = temp.(basisFct{1}).Bo;
+    buffer.tw1(kk)              = temp.(basisFct{1}).tw1;
+
     if iscell(temp.(basisFct{1}).seq)
         buffer.seq{kk}              = temp.(basisFct{1}).seq{1};
     else
@@ -161,6 +164,7 @@ if addMMFlag
     sw = BASIS.spectralwidth;
     Bo = BASIS.Bo;
     centerFreq = BASIS.centerFreq;
+    
     % The amplitude and FWHM values are determined as for the LCModel and
     % TARQUIN algorithms (see Wilson et al., MRM 2011).
     hzppm = Bo*42.577;
@@ -232,6 +236,8 @@ BASIS.dims              = buffer.dims;
 BASIS.flags             = buffer.flags;
 BASIS.nMets             = nMets;
 BASIS.sz                = size(BASIS.fids);
+BASIS.tw1               = buffer.tw1;
+
 
 % Normalize basis set
 %BASIS.scale = max(max(max(real(buffer.specs))));
@@ -303,16 +309,19 @@ ECHOT = basisSet.te;
 BADELT=basisSet.dwelltime;
 NDATAB= basisSet.sz(1)*2; % Achtung wegen zerofilling
 
+TW1 = basisSet.tw1; 
 XTRASH = 0;
 %write to txt file
 fid=fopen(outfile,'w+');
 fprintf(fid,' $SEQPAR');
 fprintf(fid,'\n FWHMBA = %5.6f,',FWHMBA);
 fprintf(fid,'\n HZPPPM = %5.6f,',HZPPPM);
+fprintf(fid,'\n TW1 = %5.6f,',TW1);
 fprintf(fid,'\n ECHOT = %2.2f,',ECHOT);
 fprintf(fid,'\n SEQ = ''%s''',SEQ);
 fprintf(fid,'\n $END');
 fprintf(fid,'\n $BASIS1');
+
 %
 fprintf(fid,'\n IDBASI = ''%s'',',[vendor ' ' SEQ ' ' num2str(ECHOT) '/ (c) Jess and Niklaus']);
 %
@@ -403,6 +412,7 @@ text(0.1,0.75,[BASIS.seq{1}],'Units','normalized')
 text(0.1,0.70,['No. Mets: ',sprintf('%d',BASIS.nMets)],'Units','normalized')
 text(0.1,0.65,['LW: ',sprintf('%0.2f',BASIS.linewidth)],'Units','normalized')
 text(0.1,0.60,['SpectralW: ',sprintf('%d',BASIS.spectralwidth)],'Units','normalized')
+text(0.1,0.55,['TW1: ',sprintf('%0.2f',BASIS.tw1(1))],'Units','normalized')
 %
 ax=gca;
 ax.XAxis.MinorTick       = 'on';
