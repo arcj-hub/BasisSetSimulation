@@ -15,7 +15,7 @@ Required Dependencies: FID-A
 # Usage
 To simulate a basis set, run the following script after setting all the required input parameters.
 
-`run_simLASERShaped_fast_JNZ.m`
+`sLASER_makebasiset.m`
 
 Note: You will need the refocusing pulse file specific to your vendor added to the path.
 
