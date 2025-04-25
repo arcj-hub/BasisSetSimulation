@@ -25,24 +25,29 @@ Required Dependencies: FID-A
 
 # Directory Structure
 
-BasisSetSimulation/
-├── dependencies/   # Needed functions
-├── my_basis/       # Output folder: simulated .basis files
-├── my_mets/        # Input folder: custom metabolite spin-systems
-├── my_pulse/       # Input folder: vendor-specific RF pulse files
-├── run_generate_my_mets.m   # Script to add new metabolite spin systems
-├── sLASER_makebaseset.m   # Main simulation script
-├── README.md       # This documentation
-└── LICENSE         # Project license
+### dependencies/  
 
-my_basis/
+Stores required functions
+
+### my_basis/  
+
 Stores all generated .basis files
 
-my_mets/
+### my_mets/ 
+
 Place any new metabolite spin-system definitions here (automatically from run_generate_my_mets.m) 
 
-my_pulse/
+### my_pulse/ 
+
 Add the shaped refocusing pulse files provided by your scanner vendor
+
+### sLASER_makebaseset.m  
+
+Main simulation script
+
+### run_generate_my_mets.m 
+
+Script to add new metabolite spin systems
 
 # Usage
 To simulate a basis set, run the following script after setting all the required input parameters.
