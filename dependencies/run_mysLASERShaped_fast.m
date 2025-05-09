@@ -95,12 +95,37 @@ d=cell(1,1);
 
 %if you do not have the parallel computing toolbox, uncomment the first
 %for loop and delete "parfor X=1:length(x)"
-parfor X=1:length(x)
-%  for X=1:length(x)
-        disp(['Executing X-position ' num2str(X) '!!' ]);
-        out_posx_rpc{X}=sim_sLASER_shaped_Ref1(Bfield,sys,te,rfPulse,refTp,x(X),Gx,flipAngle,centreFreq);
-%                            sim_sLASER_shaped_Ref1(Bfield,sys,te,RF,       tp,  dx, Gx,ph1,   ph2,  centreFreq)
+
+
+% parfor X=1:length(x)
+% %  for X=1:length(x)
+% 
+%        % disp(['Executing X-position ' num2str(X) '!!' ]);
+%         out_posx_rpc{X}=sim_sLASER_shaped_Ref1(Bfield,sys,te,rfPulse,refTp,x(X),Gx,flipAngle,centreFreq);
+% %                            sim_sLASER_shaped_Ref1(Bfield,sys,te,RF,       tp,  dx, Gx,ph1,   ph2,  centreFreq)
+% end
+
+% Define the number of iterations
+numIterations = length(x);
+
+% Loop through the iterations
+parfor X = 1:numIterations
+    % Calculate the progress percentage
+    progressPercentage = X / numIterations * 100;
+    
+    % Create a progress bar string
+    progressBar = ['[', repmat('=', 1, round(progressPercentage)), repmat(' ', 1, 100 - round(progressPercentage)), ']'];
+    
+    % Display the progress bar in the command window
+    fprintf('Progress X-position: %s %.1f%%\r', progressBar, progressPercentage);
+
+    % Perform your computation here
+    out_posx_rpc{X} = sim_sLASER_shaped_Ref1(Bfield, sys, te, rfPulse, refTp, x(X), Gx, flipAngle, centreFreq);
+    % sim_sLASER_shaped_Ref1(Bfield,sys,te,RF,tp,dx,Gx,ph1,ph2,centreFreq)
 end
+
+% Print a new line to clear the progress bar
+fprintf('\n');
 
 %calculate the average density matrix (Doing this inside a separate for
 %loop because I couldn't figure out how to do this inside the parfor loop):
@@ -115,10 +140,21 @@ out=struct([]);
 %Now loop through y direction (second refoc pulse only);
 parfor Y=1:length(y) %Use this if you do have the MATLAB parallel processing toolbox
 %for Y=1:length(y) %Use this if you don't have the MATLAB parallel processing toolbox
-        disp(['Executing Y-position ' num2str(Y) '!!' ]);
+ % Calculate the progress percentage
+    progressPercentage = Y / numIterations * 100;
+  % Create a progress bar string
+    progressBar = ['[', repmat('=', 1, round(progressPercentage)), repmat(' ', 1, 100 - round(progressPercentage)), ']'];
+    
+    % Display the progress bar in the command window
+    fprintf('Progress Y-position: %s %.1f%%\r', progressBar, progressPercentage);
+     %   disp(['Executing Y-position ' num2str(Y) '!!' ]);
+     % Perform your computation here
         out_posy_rpc{Y}=sim_sLASER_shaped_Ref2(d{1},Npts,sw,Bfield,lw,sys,te,rfPulse,refTp,y(Y),Gy,flipAngle,centreFreq);
 %                            sim_sLASER_shaped_Ref2(d,   n,sw,Bfield,linewidth,sys,te,RF,       tp, dy,  Gy,ph3,    ph4,  centreFreq)
 end
+
+% Print a new line to clear the progress bar
+fprintf('\n');
 
 
 %Now combine the outputs;  Again, doing this inside a separate for loop
