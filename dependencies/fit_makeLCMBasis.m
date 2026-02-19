@@ -35,7 +35,7 @@
 % Unterschiede in ifft und fft
 
 
-function BASIS = fit_makeLCMBasis_2Jess(folder,addMMFlag,fullpath_to_save_basis,vendor,sequence)
+function BASIS = fit_makeLCMBasis(folder,addMMFlag,fullpath_to_save_basis,vendor,sequence)
 
 % folder that contains all matfiles form simulation
 % addMMflag
