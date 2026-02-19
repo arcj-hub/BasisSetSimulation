@@ -75,7 +75,6 @@ ToolboxCheck;
 
 % Define the variable Basis_name at the beginning of your script
 basis_name='lcm_gamma_new.basis'; %keep "_gamma_"
-% pathtoFIDA='/Users/jessicaarchibald/Desktop/GLUATLAS/FID-A-master2022';
 pathtofida=fullfile(curfolder,'dependencies','FID-A');
 addpath(genpath(pathtoFIDA));
 % folder_to_save=[pathtoFIDA,'/GeneratedRawFiles/sLASER_JESS_2024/'];
