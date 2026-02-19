@@ -74,8 +74,7 @@ ToolboxCheck
 basis_name = 'lcm_gamma_new.basis' ; %keep "_gamma_" 
 
 % Path to the FID-A Folder
-%pathtofida='W:/SharedProgramme/FID-A-git/FID-A';
-pathtofida='/Users/jessicaarchibald/Documents/GitHub/B-SIM/dependencies/FID-A';
+pathtofida=fullfile(curfolder,'dependencies','FID-A');
 
 % Where everything is saved
 folder_to_save=[curfolder,'/my_basis/'];
