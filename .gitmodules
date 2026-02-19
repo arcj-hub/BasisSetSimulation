@@ -1,0 +1,3 @@
+[submodule "dependencies/FID-A"]
+	path = dependencies/FID-A
+	url = https://github.com/arcj-hub/FID-A.git

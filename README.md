@@ -1,4 +1,6 @@
-# Basis set simulation
+# Basis Set Simulation
+
+This project simulates semi-LASER basis sets using shaped refocusing pulses, producing .basis files compatible with conventional MRS fitting software. Simulated spectra are also generated and exported in PDF format. Core simulation routines leverage functions from FID-A and Osprey for accurate spectroscopic analysis.
 
 Contact: Dr. Jessica Archibald, Weill Cornell Medicine ([jea4025@med.cornell.edu](mailto:jea4025@med.cornell.edu))
 
@@ -18,6 +20,32 @@ Required dependencies:
 
 - [FID-A](https://github.com/CIC-methods/FID-A)
 
+## Directory Structure
+
+### dependencies/
+
+Stores required functions
+
+### my_basis/  
+
+Stores all generated .basis files
+
+### my_mets/
+
+Place any new metabolite spin-system definitions here (automatically from run_generate_my_mets.m)
+
+### my_pulse/
+
+Add the shaped refocusing pulse files provided by your scanner vendor
+
+### sLASER_makebaseset.m  
+
+Main simulation script
+
+### run_generate_my_mets.m
+
+Script to add new metabolite spin systems
+
 ## Usage
 
 To simulate a basis set, run the following script after setting all the required input parameters.
@@ -28,7 +56,17 @@ Note: You will need the refocusing pulse file specific to your vendor added to t
 
 ## Output
 
-The output is a .basis file compatible with conventional fitting software. The PDFs include simulated spectra based on the specified parameters and pulse sequences.
+Review outputs in my_basis/:
+
+.basis files for each metabolite
+
+.pdf report visualizing simulated spectra
+
+.raw, .png, and .mat files for further inspection
+
+## Reference
+
+This project utilizes functions from [FID-A](https://www.opensourceimaging.org/project/fid-a-advanced-processing-and-simulation-of-mr-spectroscopy/) and [Osprey](https://schorschinho.github.io/osprey/). If you find this work helpful or use any part of it in your research or publications, please consider citing it { xx NeuroLibre link }.
 
 ## Acknowledgments
 
