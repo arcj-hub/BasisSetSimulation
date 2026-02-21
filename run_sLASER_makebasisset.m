@@ -75,16 +75,15 @@ ToolboxCheck;
 
 % Define the variable Basis_name at the beginning of your script
 basis_name='lcm_gamma_new.basis'; %keep "_gamma_"
-pathtofida=fullfile(curfolder,'dependencies','FID-A');
-addpath(genpath(pathtoFIDA));
-% folder_to_save=[pathtoFIDA,'/GeneratedRawFiles/sLASER_JESS_2024/'];
-folder_to_save='~/Desktop/out/';
+maindir=fileparts(mfilename("fullpath"));
+addpath(genpath(maindir));
+folder_to_save='~/Desktop/makebasisset_output';
 save_result=true;
 vendor='Philips';
 sequence='sLASER';
-refocWaveform='oit_800_6500.pta'; %name of refocusing pulse waveform
+refocWaveform='standardized_goia.txt'; %name of refocusing pulse waveform
 flip_angle=180;
-refTp=4.4496; %duration of refocusing pulses[ms]
+refTp=4.4496; %duration of refocusing pulses[ms]I've I've
 Npts=4096; %number of spectral points
 sw=4000; %spectral width [Hz]
 lw=2; %linewidth of the output spectrum [Hz]
@@ -141,11 +140,11 @@ ref.fids=ref.fids.*exp(-1i*2*pi*shift_in_points*(0:1:(size(ref.fids,1)-1)).'/(si
 
 %-------------------------------------------------------------------------
 %Load spin systems (for the rest)
-load([pathtoFIDA,'/simulationTools/metabolites/spinSystems']);
+load(fullfile(maindir, 'my_mets', 'my_spinSystem.mat'));
 %-------------------------------------------------------------------------
 
 for met_nr=1:size(spinSysList,2)
-    
+
     spinSys=spinSysList{met_nr}; %spin system to simulate
     sys=eval(['sys' spinSys]);
     % Schreibe die einfach im ersten rein
@@ -154,14 +153,17 @@ for met_nr=1:size(spinSysList,2)
     %-------------------------------------------------------------------------
     % Simulation
     %-------------------------------------------------------------------------
-    out = run_mysLASERShaped_fast(rfPulse,refTp,Npts,sw,lw,Bfield,thkX,thkY,x,y,te,sys,flip_angle);
+    out=run_mysLASERShaped_fast(rfPulse,refTp,Npts,sw,lw,Bfield,thkX,thkY,x,y,te,sys,flip_angle);
+
+    %add w1 max
+    out.w1max=rfPulse.w1max;
 
     % Save before the shift -
-    save_out_mat=[folder_to_save,'matfiles_pre'];
+    save_out_mat=fullfile(folder_to_save,'matfiles_pre');
     if ~exist(save_out_mat,'dir')
         mkdir(save_out_mat);
     end
-    save([save_out_mat,filesep,spinSys],'out')
+    save([save_out_mat,filesep,spinSys],'out');
 
     %-------------------------------------------------------------------------
     % Add shift here and later for every simulated
@@ -174,7 +176,7 @@ for met_nr=1:size(spinSysList,2)
     %-------------------------------------------------------------------------
     out=op_addScans(out,ref);
 
-    save_figure=[folder_to_save,'figures'];
+    save_figure=fullfile(folder_to_save,'figures');
     if ~exist(save_figure,'dir')
         mkdir(save_figure);
     end
@@ -191,7 +193,7 @@ for met_nr=1:size(spinSysList,2)
 
     out.name=spinSys;
     out.centreFreq=centreFreq; % This is needed for the check within fit_LCMmakeBasis.
-    save_raw=[folder_to_save,'raw'];
+    save_raw=fullfile(folder_to_save,'raw');
 
     if save_result
         if ~exist(save_raw,'dir')
@@ -201,17 +203,17 @@ for met_nr=1:size(spinSysList,2)
     end
 
     % Saving after shift
-    save_out_mat_end=[folder_to_save,'matfiles_post'];
+    save_out_mat_end=fullfile(folder_to_save,'matfiles_post');
     if ~exist(save_out_mat_end,'dir')
         mkdir(save_out_mat_end);
     end
-    save([save_out_mat_end,filesep,spinSys],'out')
+    save([save_out_mat_end,filesep,spinSys],'out');
 
 end
 
 disp('Running fit_makeLCMBasis...');
 
-BASIS=fit_makeLCMBasis_2Jess(save_out_mat_end, false, [folder_to_save, filesep, basis_name], vendor, sequence);
+BASIS=fit_makeLCMBasis(save_out_mat_end, false, [folder_to_save, filesep, basis_name], vendor, sequence);
 
-rmpath(genpath(pathtoFIDA));
+rmpath(genpath(maindir));
 disp('Done');
