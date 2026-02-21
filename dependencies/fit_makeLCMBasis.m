@@ -24,7 +24,6 @@
 % editTarget= Target molecule of edited data.
 %             OPTIONS:  'GABA'
 %                       'GSH'
-%                       '
 
 %
 % OUTPUTS:
@@ -113,7 +112,7 @@ for kk = 1:nMets
     buffer.linewidth(kk)        = temp.(basisFct{1}).linewidth;
     buffer.Bo(kk)               = temp.(basisFct{1}).Bo;
     % B1/w1max added
-    buffer.w1max(kk)               = temp.(basisFct{1}).w1max;
+    buffer.w1max(kk)            = temp.(basisFct{1}).w1max;
     if iscell(temp.(basisFct{1}).seq)
         buffer.seq{kk}              = temp.(basisFct{1}).seq{1};
     else
@@ -133,7 +132,7 @@ end
 
 % Test whether parameters are the same across all basis functions; flag
 % warning if they are not; write into basis set struct if they are.
-seq_params = {'spectralwidth','dwelltime','n','linewidth','Bo','seq','te', 'centerFreq','w1max'};
+seq_params = {'spectralwidth','dwelltime','n','linewidth','Bo','seq','te','centerFreq','w1max'};
 for pp = 1:length(seq_params)
     unique_params = unique(buffer.(seq_params{pp}));
     if length(unique_params) > 1
@@ -400,17 +399,17 @@ a=figure;
 plot(BASIS.ppm,real(BASIS.specs));legend(BASIS.name,'Location','eastoutside')
 set(gca,'xdir','reverse','XGrid','on')
 %
-text(0.1,0.9,['Bo: ',sprintf('%d',BASIS.Bo)],'Units','normalized')
+text(0.1,0.9,['{\it{B}}_{0}: ',sprintf('%dT',BASIS.Bo)],'Units','normalized')
 %
 gamma_H_Hz_T=42.577478461*1e6; % 42.577478461(18) https://physics.nist.gov/cgi-bin/cuu/Value?gammapbar
 B1max=BASIS.w1max/(1e-6*gamma_H_Hz_T);
 %
-text(0.1,0.85,['B1max [mT]: ',sprintf('%d',B1max)],'Units','normalized')
-text(0.1,0.8,['Echo Time: ',sprintf('%d',BASIS.te)],'Units','normalized')
-text(0.1,0.75,[BASIS.seq{1}],'Units','normalized')
-text(0.1,0.70,['No. Mets: ',sprintf('%d',BASIS.nMets)],'Units','normalized')
-text(0.1,0.65,['LW: ',sprintf('%0.2f',BASIS.linewidth)],'Units','normalized')
-text(0.1,0.60,['SpectralW: ',sprintf('%d',BASIS.spectralwidth)],'Units','normalized')
+text(0.1,0.85,['{\it{B}}_{1,max}: ',sprintf('%.3f mT',B1max)],'Units','normalized')
+text(0.1,0.8,['TE: ',sprintf('%d ms',BASIS.te)],'Units','normalized')
+text(0.1,0.75,['Seq.: ' BASIS.seq{1}],'Units','normalized')
+text(0.1,0.70,['No. mets.: ',sprintf('%d',BASIS.nMets)],'Units','normalized')
+text(0.1,0.65,['Linewidth: ',sprintf('%0.2f Hz',BASIS.linewidth)],'Units','normalized')
+text(0.1,0.60,['Spectral width: ',sprintf('%d pts',BASIS.spectralwidth)],'Units','normalized')
 %
 ax=gca;
 ax.XAxis.MinorTick       = 'on';
