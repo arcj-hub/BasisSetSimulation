@@ -241,7 +241,7 @@ if size(rf,2)>3 && any(rf(:,4))
     RF_struct.tbw='N/A - gradient modulated pulse';
     RF_struct.isGM=true;
     RF_struct.tthk=bw*Tp; %This is the time x sliceThickness product for
-    %gradient modulated pulses.  It is in units [cm.s]
+                          %gradient modulated pulses.  It is in units [cm.s]
 else
     RF_struct.tbw=bw*Tp*1000;
     RF_struct.isGM=false;

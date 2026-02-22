@@ -45,7 +45,7 @@ function BASIS = fit_makeLCMBasis(folder,addMMFlag,fullpath_to_save_basis,vendor
 %
 do_offset_correction=true;
 if do_offset_correction
-    disp('DC offset correction : PPMOFF')
+    fprintf('DC offset correction: PPMOFF\n');
 end
 %
 % Collect *.mat filenames from input folder
@@ -55,7 +55,7 @@ idx = contains(mat_filenames, 'Ref');
 mat_filenames(idx) = [];
 nMets           = length(mat_filenames);
 %
-fprintf('Number of Metabolites : %d\n',nMets)
+fprintf('Number of metabolites: %d\n',nMets)
 %
 % Loop over all *.mat filenames, load their data, store in a buffer
 %
@@ -366,8 +366,8 @@ end
 % nizo Be carefull
 function [RF] = shift_centerFreq(data_struct,idx)
 
-    t=repmat(data_struct.t',[1 data_struct.sz(2:end,1)]);
-    hzpppm = data_struct.Bo*42.577;
+    % t=repmat(data_struct.t',[1 data_struct.sz(2:end,1)]);
+    % hzpppm = data_struct.Bo*42.577;
     %f = (4.68-data_struct.centerFreq)*hzpppm;%nizo removed
     fids = data_struct.fids(:,idx);
     %fids=fids.*exp(-1i*t*f*2*pi);% nizo removed
@@ -489,9 +489,9 @@ maxRef          = real(refWindow(maxRef_index));
 
 % Determine an initial estimate for the FWHM
 % Peak lines can be super narrow, so overestimate it slightly
-gtHalfMax   = find(abs(real(refWindow)) >= 0.4*abs(maxRef));
-FWHM1       = abs(ppmWindow(gtHalfMax(1)) - ppmWindow(gtHalfMax(end)));
-FWHM1       = FWHM1*(42.577*in.Bo(1));  %Assumes proton.
+% gtHalfMax   = find(abs(real(refWindow)) >= 0.4*abs(maxRef));
+% FWHM1       = abs(ppmWindow(gtHalfMax(1)) - ppmWindow(gtHalfMax(end)));
+% FWHM1       = FWHM1*(42.577*in.Bo(1));  %Assumes proton.
 
 % Determine an initial estimate for the center frequency of the Cr peak
 crFreq = ppmWindow(maxRef_index);

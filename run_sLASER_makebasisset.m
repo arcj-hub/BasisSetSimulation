@@ -76,15 +76,15 @@ ToolboxCheck;
 
 % Define the variable Basis_name at the beginning of your script
 basis_name='lcm_gamma_new.basis'; %keep "_gamma_"
-maindir=fileparts(mfilename("fullpath"));
-addpath(genpath(maindir));
+main_dir=fileparts(mfilename("fullpath"));
+addpath(genpath(main_dir));
 folder_to_save='~/Desktop/makebasisset_output';
 save_result=true;
 vendor='Philips';
 sequence='sLASER';
 refocWaveform='standardized_goia.txt'; %name of refocusing pulse waveform
 flip_angle=180;
-refTp=4.4496; %duration of refocusing pulses[ms]I've I've
+refTp=4.4496; %duration of refocusing pulses[ms]
 Npts=4096; %number of spectral points
 sw=4000; %spectral width [Hz]
 lw=2; %linewidth of the output spectrum [Hz]
@@ -141,7 +141,7 @@ ref.fids=ref.fids.*exp(-1i*2*pi*shift_in_points*(0:1:(size(ref.fids,1)-1)).'/(si
 
 %-------------------------------------------------------------------------
 %Load spin systems (for the rest)
-load(fullfile(maindir, 'my_mets', 'my_spinSystem.mat'));
+load(fullfile(main_dir,'my_mets','my_spinSystem.mat'));
 %-------------------------------------------------------------------------
 
 for met_nr=1:size(spinSysList,2)
@@ -212,9 +212,9 @@ for met_nr=1:size(spinSysList,2)
 
 end
 
-disp('Running fit_makeLCMBasis...');
+fprintf('\nRunning fit_makeLCMBasis...\n\n');
 
 BASIS=fit_makeLCMBasis(save_out_mat_end, false, [folder_to_save, filesep, basis_name], vendor, sequence);
 
-rmpath(genpath(maindir));
-disp('Done');
+rmpath(genpath(main_dir));
+fprintf('\nDone! Output saved in ''%s''\n\n',folder_to_save);

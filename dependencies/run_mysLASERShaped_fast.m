@@ -139,7 +139,7 @@ out=struct([]);
 
 %Now loop through y direction (second refoc pulse only);
 parfor Y=1:length(y) %Use this if you do have the MATLAB parallel processing toolbox
-    %for Y=1:length(y) %Use this if you don't have the MATLAB parallel processing toolbox
+%for Y=1:length(y) %Use this if you don't have the MATLAB parallel processing toolbox
     % Calculate the progress percentage
     progressPercentage = Y / numIterations * 100;
     % Create a progress bar string
@@ -147,10 +147,10 @@ parfor Y=1:length(y) %Use this if you do have the MATLAB parallel processing too
 
     % Display the progress bar in the command window
     fprintf('Progress Y-position: %s %.1f%%\r', progressBar, progressPercentage);
-    %   disp(['Executing Y-position ' num2str(Y) '!!' ]);
+    % disp(['Executing Y-position ' num2str(Y) '!!' ]);
     % Perform your computation here
     out_posy_rpc{Y}=sim_sLASER_shaped_Ref2(d{1},Npts,sw,Bfield,lw,sys,te,rfPulse,refTp,y(Y),Gy,flipAngle,centreFreq);
-    %                            sim_sLASER_shaped_Ref2(d,   n,sw,Bfield,linewidth,sys,te,RF,       tp, dy,  Gy,ph3,    ph4,  centreFreq)
+    % sim_sLASER_shaped_Ref2(d,n,sw,Bfield,linewidth,sys,te,RF,tp,dy,Gy,ph3,ph4,centreFreq)
 end
 
 % Print a new line to clear the progress bar
