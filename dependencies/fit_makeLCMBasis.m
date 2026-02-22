@@ -34,7 +34,7 @@
 % Unterschiede in ifft und fft
 
 
-function BASIS = fit_makeLCMBasis(folder,addMMFlag,fullpath_to_save_basis,vendor,sequence)
+function BASIS = fit_makeLCMBasis(folder,addMMFlag,fullpath_to_save_basis,vendor,sequence,vis_flag)
 
 % folder that contains all matfiles form simulation
 % addMMflag
@@ -243,7 +243,7 @@ BASIS.sz                = size(BASIS.fids);
 % save
 %
 
-print_basis(BASIS,strrep(fullpath_to_save_basis,'.basis','.pdf'))
+print_basis(BASIS,strrep(fullpath_to_save_basis,'.basis','.pdf'),vis_flag)
 % Vorsicht noch alles genau anschauen
 io_writelcmBASIS(BASIS,fullpath_to_save_basis,vendor,sequence);
 
@@ -391,11 +391,11 @@ function [RF] = shift_centerFreq(data_struct,idx)
 
 end
 
-function print_basis(BASIS,fullpath_to_basis)
+function print_basis(BASIS,fullpath_to_basis,vis_flag)
 %
 xlim_range=[-1 10.0];
 %
-a=figure;
+h=figure('Visible',vis_flag);
 plot(BASIS.ppm,real(BASIS.specs));legend(BASIS.name,'Location','eastoutside')
 set(gca,'xdir','reverse','XGrid','on')
 %
@@ -415,12 +415,13 @@ ax=gca;
 ax.XAxis.MinorTick       = 'on';
 ax.XAxis.MinorTickValues = xlim_range(1):0.5:xlim_range(2);
 ax.XMinorGrid = 'on';
-xlim(xlim_range)
+xlim(xlim_range);
+xlabel('ppm');
 %
-exportgraphics(a,fullpath_to_basis, 'Append', false);
+exportgraphics(h,fullpath_to_basis, 'Append', false);
 
 for jj=1:BASIS.nMets
-    a=figure;
+    h=figure('Visible',vis_flag);
     subplot(2,1,1);
     plot(BASIS.ppm,real(BASIS.specs(:,jj)));
     set(gca,'xdir','reverse','XGrid','on')
@@ -428,7 +429,8 @@ for jj=1:BASIS.nMets
     ax.XAxis.MinorTick       = 'on';
     ax.XAxis.MinorTickValues = xlim_range(1):0.5:xlim_range(2);
     ax.XMinorGrid = 'on';
-    xlim(xlim_range)
+    xlim(xlim_range);
+    xlabel('ppm');
     %
     subplot(2,1,2);
     plot(BASIS.ppm,imag(BASIS.specs(:,jj)));
@@ -437,12 +439,12 @@ for jj=1:BASIS.nMets
     ax.XAxis.MinorTick       = 'on';
     ax.XAxis.MinorTickValues = xlim_range(1):0.5:xlim_range(2);
     ax.XMinorGrid = 'on';
-    xlim(xlim_range)
-    xlim(xlim_range)
+    xlim(xlim_range);
+    xlabel('ppm');
     %
     sgtitle(BASIS.name{jj});
     %
-    exportgraphics(a,fullpath_to_basis, 'Append', true);
+    exportgraphics(h,fullpath_to_basis, 'Append', true);
 end
 
 end

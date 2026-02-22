@@ -78,8 +78,9 @@ ToolboxCheck;
 basis_name='lcm_gamma_new.basis'; %keep "_gamma_"
 main_dir=fileparts(mfilename("fullpath"));
 addpath(genpath(main_dir));
-folder_to_save='~/Desktop/makebasisset_output';
+output_folder='~/Desktop/makebasisset_output';
 save_result=true;
+show_plots=false;
 vendor='Philips';
 sequence='sLASER';
 refocWaveform='standardized_goia.txt'; %name of refocusing pulse waveform
@@ -112,6 +113,19 @@ shift_in_ppm=(4.65-centreFreq);
 
 % ************ END OF INPUT PARAMETERS BY USER **********************************
 
+if show_plots
+    vis_flag='on'; %#ok<*UNRCH>
+else
+    vis_flag='off';
+end
+
+if ~exist(output_folder,'dir')
+    mkdir(output_folder);
+else
+    rmdir(output_folder,'s');
+    mkdir(output_folder);
+end
+
 %--------------------------------------------------------------------------
 %Load RF waveform
 %--------------------------------------------------------------------------
@@ -123,7 +137,7 @@ sysRef.shifts=0;
 sysRef.scaleFactor=1;
 sysRef.name='Ref_0ppm';
 sysRef.centreFreq=centreFreq;
-ref = run_mysLASERShaped_fast(rfPulse,refTp,Npts,sw,lw,Bfield,thkX,thkY,x,y,te,sysRef,flip_angle);
+ref=run_mysLASERShaped_fast(rfPulse,refTp,Npts,sw,lw,Bfield,thkX,thkY,x,y,te,sysRef,flip_angle);
 
 tau1=15; %fake timing
 tau2=13; %fake timing
@@ -160,7 +174,7 @@ for met_nr=1:size(spinSysList,2)
     out.w1max=rfPulse.w1max;
 
     % Save before the shift -
-    save_out_mat=fullfile(folder_to_save,'matfiles_pre');
+    save_out_mat=fullfile(output_folder,'matfiles_pre');
     if ~exist(save_out_mat,'dir')
         mkdir(save_out_mat);
     end
@@ -177,24 +191,24 @@ for met_nr=1:size(spinSysList,2)
     %-------------------------------------------------------------------------
     out=op_addScans(out,ref);
 
-    save_figure=fullfile(folder_to_save,'figures');
+    save_figure=fullfile(output_folder,'figures');
     if ~exist(save_figure,'dir')
         mkdir(save_figure);
     end
 
-    % figure
-    figure;
+    h=figure('Visible',vis_flag);
+    clf(h);
     plot(refjustforppmrange.ppm,real(ifftshift(ifft(out.fids))),'b');
     set(gca,'xdir','reverse');
     colormap;set(gcf,'color','w');
     xlim([-1 5]);
     xlabel('ppm');
     title(['figure with ref',spinSys]);
-    print('-dpng','-r300',[save_figure,filesep,spinSys]);
+    print(h,'-dpng','-r300',[save_figure,filesep,spinSys]);
 
     out.name=spinSys;
     out.centreFreq=centreFreq; % This is needed for the check within fit_LCMmakeBasis.
-    save_raw=fullfile(folder_to_save,'raw');
+    save_raw=fullfile(output_folder,'raw');
 
     if save_result
         if ~exist(save_raw,'dir')
@@ -204,7 +218,7 @@ for met_nr=1:size(spinSysList,2)
     end
 
     % Saving after shift
-    save_out_mat_end=fullfile(folder_to_save,'matfiles_post');
+    save_out_mat_end=fullfile(output_folder,'matfiles_post');
     if ~exist(save_out_mat_end,'dir')
         mkdir(save_out_mat_end);
     end
@@ -214,7 +228,7 @@ end
 
 fprintf('\nRunning fit_makeLCMBasis...\n\n');
 
-BASIS=fit_makeLCMBasis(save_out_mat_end, false, [folder_to_save, filesep, basis_name], vendor, sequence);
+BASIS=fit_makeLCMBasis(save_out_mat_end, false, [output_folder, filesep, basis_name], vendor, sequence, vis_flag);
 
 rmpath(genpath(main_dir));
-fprintf('\nDone! Output saved in ''%s''\n\n',folder_to_save);
+fprintf('\nDone! Output saved in ''%s''\n\n',output_folder);
