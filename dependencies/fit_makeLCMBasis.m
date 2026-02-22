@@ -506,7 +506,7 @@ parsGuess(5) = 0;       % phase
     
 % Run first guess
 yGuess  = op_lorentz(parsGuess, ppmWindow);
-parsFit = nlinfit(ppmWindow, real(refWindow'), @op_lorentz, parsGuess);
+parsFit = nlinfit(ppmWindow, real(refWindow'), @op_lorentz, yGuess);
 yFit    = op_lorentz(parsFit, ppmWindow);
     
 % figure;
