@@ -24,7 +24,6 @@
 % editTarget= Target molecule of edited data.
 %             OPTIONS:  'GABA'
 %                       'GSH'
-%                       '
 
 %
 % OUTPUTS:
@@ -35,7 +34,7 @@
 % Unterschiede in ifft und fft
 
 
-function BASIS = fit_makeLCMBasis(folder,addMMFlag,fullpath_to_save_basis,vendor,sequence)
+function BASIS = fit_makeLCMBasis(folder,addMMFlag,fullpath_to_save_basis,vendor,sequence,vis_flag)
 
 % folder that contains all matfiles form simulation
 % addMMflag
@@ -46,7 +45,7 @@ function BASIS = fit_makeLCMBasis(folder,addMMFlag,fullpath_to_save_basis,vendor
 %
 do_offset_correction=true;
 if do_offset_correction
-    disp('DC offset correction : PPMOFF')
+    fprintf('DC offset correction: PPMOFF\n');
 end
 %
 % Collect *.mat filenames from input folder
@@ -56,7 +55,7 @@ idx = contains(mat_filenames, 'Ref');
 mat_filenames(idx) = [];
 nMets           = length(mat_filenames);
 %
-fprintf('Number of Metabolites : %d\n',nMets)
+fprintf('Number of metabolites: %d\n',nMets)
 %
 % Loop over all *.mat filenames, load their data, store in a buffer
 %
@@ -113,7 +112,7 @@ for kk = 1:nMets
     buffer.linewidth(kk)        = temp.(basisFct{1}).linewidth;
     buffer.Bo(kk)               = temp.(basisFct{1}).Bo;
     % B1/w1max added
-    buffer.w1max(kk)               = temp.(basisFct{1}).w1max;
+    buffer.w1max(kk)            = temp.(basisFct{1}).w1max;
     if iscell(temp.(basisFct{1}).seq)
         buffer.seq{kk}              = temp.(basisFct{1}).seq{1};
     else
@@ -133,7 +132,7 @@ end
 
 % Test whether parameters are the same across all basis functions; flag
 % warning if they are not; write into basis set struct if they are.
-seq_params = {'spectralwidth','dwelltime','n','linewidth','Bo','seq','te', 'centerFreq','w1max'};
+seq_params = {'spectralwidth','dwelltime','n','linewidth','Bo','seq','te','centerFreq','w1max'};
 for pp = 1:length(seq_params)
     unique_params = unique(buffer.(seq_params{pp}));
     if length(unique_params) > 1
@@ -244,7 +243,7 @@ BASIS.sz                = size(BASIS.fids);
 % save
 %
 
-print_basis(BASIS,strrep(fullpath_to_save_basis,'.basis','.pdf'))
+print_basis(BASIS,strrep(fullpath_to_save_basis,'.basis','.pdf'),vis_flag)
 % Vorsicht noch alles genau anschauen
 io_writelcmBASIS(BASIS,fullpath_to_save_basis,vendor,sequence);
 
@@ -367,8 +366,8 @@ end
 % nizo Be carefull
 function [RF] = shift_centerFreq(data_struct,idx)
 
-    t=repmat(data_struct.t',[1 data_struct.sz(2:end,1)]);
-    hzpppm = data_struct.Bo*42.577;
+    % t=repmat(data_struct.t',[1 data_struct.sz(2:end,1)]);
+    % hzpppm = data_struct.Bo*42.577;
     %f = (4.68-data_struct.centerFreq)*hzpppm;%nizo removed
     fids = data_struct.fids(:,idx);
     %fids=fids.*exp(-1i*t*f*2*pi);% nizo removed
@@ -392,36 +391,37 @@ function [RF] = shift_centerFreq(data_struct,idx)
 
 end
 
-function print_basis(BASIS,fullpath_to_basis)
+function print_basis(BASIS,fullpath_to_basis,vis_flag)
 %
 xlim_range=[-1 10.0];
 %
-a=figure;
+h=figure('Visible',vis_flag);
 plot(BASIS.ppm,real(BASIS.specs));legend(BASIS.name,'Location','eastoutside')
 set(gca,'xdir','reverse','XGrid','on')
 %
-text(0.1,0.9,['Bo: ',sprintf('%d',BASIS.Bo)],'Units','normalized')
+text(0.1,0.9,['{\it{B}}_{0}: ',sprintf('%dT',BASIS.Bo)],'Units','normalized')
 %
 gamma_H_Hz_T=42.577478461*1e6; % 42.577478461(18) https://physics.nist.gov/cgi-bin/cuu/Value?gammapbar
 B1max=BASIS.w1max/(1e-6*gamma_H_Hz_T);
 %
-text(0.1,0.85,['B1max [mT]: ',sprintf('%d',B1max)],'Units','normalized')
-text(0.1,0.8,['Echo Time: ',sprintf('%d',BASIS.te)],'Units','normalized')
-text(0.1,0.75,[BASIS.seq{1}],'Units','normalized')
-text(0.1,0.70,['No. Mets: ',sprintf('%d',BASIS.nMets)],'Units','normalized')
-text(0.1,0.65,['LW: ',sprintf('%0.2f',BASIS.linewidth)],'Units','normalized')
-text(0.1,0.60,['SpectralW: ',sprintf('%d',BASIS.spectralwidth)],'Units','normalized')
+text(0.1,0.85,['{\it{B}}_{1,max}: ',sprintf('%.3f mT',B1max)],'Units','normalized')
+text(0.1,0.8,['TE: ',sprintf('%d ms',BASIS.te)],'Units','normalized')
+text(0.1,0.75,['Seq.: ' BASIS.seq{1}],'Units','normalized')
+text(0.1,0.70,['No. mets.: ',sprintf('%d',BASIS.nMets)],'Units','normalized')
+text(0.1,0.65,['Linewidth: ',sprintf('%0.2f Hz',BASIS.linewidth)],'Units','normalized')
+text(0.1,0.60,['Spectral width: ',sprintf('%d pts',BASIS.spectralwidth)],'Units','normalized')
 %
 ax=gca;
 ax.XAxis.MinorTick       = 'on';
 ax.XAxis.MinorTickValues = xlim_range(1):0.5:xlim_range(2);
 ax.XMinorGrid = 'on';
-xlim(xlim_range)
+xlim(xlim_range);
+xlabel('ppm');
 %
-exportgraphics(a,fullpath_to_basis, 'Append', false);
+exportgraphics(h,fullpath_to_basis, 'Append', false);
 
 for jj=1:BASIS.nMets
-    a=figure;
+    h=figure('Visible',vis_flag);
     subplot(2,1,1);
     plot(BASIS.ppm,real(BASIS.specs(:,jj)));
     set(gca,'xdir','reverse','XGrid','on')
@@ -429,7 +429,8 @@ for jj=1:BASIS.nMets
     ax.XAxis.MinorTick       = 'on';
     ax.XAxis.MinorTickValues = xlim_range(1):0.5:xlim_range(2);
     ax.XMinorGrid = 'on';
-    xlim(xlim_range)
+    xlim(xlim_range);
+    xlabel('ppm');
     %
     subplot(2,1,2);
     plot(BASIS.ppm,imag(BASIS.specs(:,jj)));
@@ -438,12 +439,12 @@ for jj=1:BASIS.nMets
     ax.XAxis.MinorTick       = 'on';
     ax.XAxis.MinorTickValues = xlim_range(1):0.5:xlim_range(2);
     ax.XMinorGrid = 'on';
-    xlim(xlim_range)
-    xlim(xlim_range)
+    xlim(xlim_range);
+    xlabel('ppm');
     %
     sgtitle(BASIS.name{jj});
     %
-    exportgraphics(a,fullpath_to_basis, 'Append', true);
+    exportgraphics(h,fullpath_to_basis, 'Append', true);
 end
 
 end
@@ -490,9 +491,9 @@ maxRef          = real(refWindow(maxRef_index));
 
 % Determine an initial estimate for the FWHM
 % Peak lines can be super narrow, so overestimate it slightly
-gtHalfMax   = find(abs(real(refWindow)) >= 0.4*abs(maxRef));
-FWHM1       = abs(ppmWindow(gtHalfMax(1)) - ppmWindow(gtHalfMax(end)));
-FWHM1       = FWHM1*(42.577*in.Bo(1));  %Assumes proton.
+% gtHalfMax   = find(abs(real(refWindow)) >= 0.4*abs(maxRef));
+% FWHM1       = abs(ppmWindow(gtHalfMax(1)) - ppmWindow(gtHalfMax(end)));
+% FWHM1       = FWHM1*(42.577*in.Bo(1));  %Assumes proton.
 
 % Determine an initial estimate for the center frequency of the Cr peak
 crFreq = ppmWindow(maxRef_index);
@@ -507,7 +508,7 @@ parsGuess(5) = 0;       % phase
     
 % Run first guess
 yGuess  = op_lorentz(parsGuess, ppmWindow);
-parsFit = nlinfit(ppmWindow, real(refWindow'), @op_lorentz, parsGuess);
+parsFit = nlinfit(ppmWindow, real(refWindow'), @op_lorentz, yGuess);
 yFit    = op_lorentz(parsFit, ppmWindow);
     
 % figure;
