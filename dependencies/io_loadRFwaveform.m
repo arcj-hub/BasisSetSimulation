@@ -37,8 +37,6 @@
 
 function RF_struct=io_loadRFwaveform(filename,type,f0,B1max)
 
-disp('adapted io_loadRFwaveform')
-
 if nargin<4
     B1max=[];
 end
@@ -46,8 +44,6 @@ end
 if nargin<3
     f0=0;
 end
-
-
 
 if isnumeric(type)
     %If 'type' was specified to be exactly 90 degrees, set the type to 'exc';
@@ -135,7 +131,7 @@ Tp=0.005;  %assume a 5 ms rf pulse;
 
 if ~isempty(B1max)
     %B1max is given in mikro tesla
-    gamma_H_Hz_T=42.577478461*1e6; % 42.577478461(18) https://physics.nist.gov/cgi-bin/cuu/Value?gammapbar
+    gamma_H_Hz_T=42.577*1e6;
     w1max=B1max*1e-6*gamma_H_Hz_T;% already in [Hz]
     tw1=Tp*w1max;
 else

@@ -100,6 +100,7 @@ x=linspace(-fovX/2,fovX/2,nX); %X positions to simulate [cm]
 y=linspace(-fovY/2,fovY/2,nY);
 te=32;%timing of the pulse sequence [ms]
 centreFreq=2.02; %Centre frequency of MR spectrum [ppm]
+B1max=[]; %B1max for refocusing pulses; if empty, B1max is calculated automatically
 
 fovX=-x(1)+x(end);
 fovY=-y(1)+y(end);
@@ -129,7 +130,7 @@ end
 %--------------------------------------------------------------------------
 %Load RF waveform
 %--------------------------------------------------------------------------
-rfPulse=io_loadRFwaveform(refocWaveform,'ref',0);
+rfPulse=io_loadRFwaveform(refocWaveform,'ref',0,B1max);
 %--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 sysRef.J=0;
