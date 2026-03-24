@@ -38,7 +38,7 @@ Place any new metabolite spin-system definitions here (automatically from run_ge
 
 Add the shaped refocusing pulse files provided by your scanner vendor
 
-### `sLASER_makebaseset.m`
+### `run_sLASER_makebaseset.m`
 
 Main simulation script
 
@@ -66,7 +66,7 @@ Review outputs in `my_basis/`:
 
 ## Citing the Work
 
-If you find this work helpful or use any part of it in your research or publications, please consider citing it { xx NeuroLibre link }.
+If you find this work helpful or use any part of it in your research or publications, please consider citing it { xx link }.
 
 ## Acknowledgments
 
