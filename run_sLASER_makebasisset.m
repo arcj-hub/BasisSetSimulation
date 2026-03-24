@@ -228,7 +228,7 @@ for met_nr=1:size(spinSysList,2)
 end
 
 fprintf('\nRunning fit_makeLCMBasis...\n\n');
-
+close(101)
 BASIS=fit_makeLCMBasis(save_out_mat_end, false, [output_folder, filesep, basis_name], vendor, sequence, vis_flag);
 copyfile(fullfile(output_folder,basis_name),fullfile(main_dir,'my_basis',basis_name));
 rmpath(genpath(main_dir));
