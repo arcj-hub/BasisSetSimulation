@@ -75,15 +75,16 @@ ToolboxCheck;
 % ************ INPUT PARAMETERS **********************************
 
 % Define the variable Basis_name at the beginning of your script
-basis_name='lcm_gamma_new.basis'; %keep "_gamma_"
+basis_name='lcm_gamma_shapedpulse.basis'; %keep "_gamma_"
 main_dir=fileparts(mfilename("fullpath"));
 addpath(genpath(main_dir));
-output_folder='~/Desktop/makebasisset_output';
+output_folder='~/Desktop/makebasisset_output_shaped';
 save_result=true;
 show_plots=false;
 vendor='Philips';
 sequence='sLASER';
 refocWaveform='standardized_goia.txt'; %name of refocusing pulse waveform
+useShaped=true; % false=ideal PRESS via sim_press, true=shaped semi-LASER
 flip_angle=180;
 refTp=4.4496; %duration of refocusing pulses[ms]
 Npts=4096; %number of spectral points
@@ -94,13 +95,15 @@ thkX=2.4; %slice thickness of x refocusing pulse [cm]
 thkY=2.2; %slice thickness of y refocusing pulse [cm]
 fovX=3; %size of the full simulation Field of View in the x-direction [cm]
 fovY=3; %size of the full simulation Field of View in the y-direction [cm]
-nX=40; %Number of grid points to simulate in the x-direction
-nY=40; %Number of grid points to simulate in the y-direction
+nX=64; %Number of grid points to simulate in the x-direction
+nY=64; %Number of grid points to simulate in the y-direction
 x=linspace(-fovX/2,fovX/2,nX); %X positions to simulate [cm]
 y=linspace(-fovY/2,fovY/2,nY);
-te=32;%timing of the pulse sequence [ms]
+te=30;%timing of the pulse sequence [ms]
 centreFreq=2.02; %Centre frequency of MR spectrum [ppm]
 B1max=[]; %B1max for refocusing pulses; if empty, B1max is calculated automatically
+pressTau1=13.1;
+pressTau2=30-pressTau1;
 
 fovX=-x(1)+x(end);
 fovY=-y(1)+y(end);
@@ -128,28 +131,39 @@ else
 end
 
 %--------------------------------------------------------------------------
-%Load RF waveform
+%Load RF waveform / reference spectrum
 %--------------------------------------------------------------------------
-rfPulse=io_loadRFwaveform(refocWaveform,'ref',0,B1max);
-%--------------------------------------------------------------------------
+if useShaped
+    rfPulse=io_loadRFwaveform(refocWaveform,'ref',0,B1max);
+end
 %--------------------------------------------------------------------------
 sysRef.J=0;
 sysRef.shifts=0;
 sysRef.scaleFactor=1;
 sysRef.name='Ref_0ppm';
 sysRef.centreFreq=centreFreq;
-ref=run_mysLASERShaped_fast(rfPulse,refTp,Npts,sw,lw,Bfield,thkX,thkY,x,y,te,sysRef,flip_angle);
+if useShaped
+    ref=run_mysLASERShaped_fast(rfPulse,refTp,Npts,sw,lw,Bfield,thkX,thkY,x,y,te,sysRef,flip_angle);
+else
+    ref=sim_press(Npts,sw,Bfield,lw,sysRef,pressTau1,pressTau2);
+    ref.ppm=ref.ppm+shift_in_ppm;
+end
 
 tau1=15; %fake timing
 tau2=13; %fake timing
 refjustforppmrange=sim_press(Npts,sw,Bfield,lw,sysRef,tau1,tau2);
+if ~useShaped
+    refjustforppmrange.ppm=refjustforppmrange.ppm+shift_in_ppm;
+end
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
 % shift
 ppm_range=ref.ppm(1)-ref.ppm(end);
 ppm_per_point=ppm_range/size(ref.ppm,2);
 shift_in_points=round(shift_in_ppm/ppm_per_point);
-ref.fids=ref.fids.*exp(-1i*2*pi*shift_in_points*(0:1:(size(ref.fids,1)-1)).'/(size(ref.fids,1)));
+if useShaped
+    ref.fids=ref.fids.*exp(-1i*2*pi*shift_in_points*(0:1:(size(ref.fids,1)-1)).'/(size(ref.fids,1)));
+end
 %--------------------------------------------------------------------------
 % Additional Metabolites
 [sysETH,sysAcetate,sysAcac,sysSucc,sysGlyc,sysVal,sysAceton,sysbHBHM]=define_spin_systems;
@@ -169,10 +183,14 @@ for met_nr=1:size(spinSysList,2)
     %-------------------------------------------------------------------------
     % Simulation
     %-------------------------------------------------------------------------
-    out=run_mysLASERShaped_fast(rfPulse,refTp,Npts,sw,lw,Bfield,thkX,thkY,x,y,te,sys,flip_angle);
-
-    %add w1 max
-    out.w1max=rfPulse.w1max;
+    if useShaped
+        out=run_mysLASERShaped_fast(rfPulse,refTp,Npts,sw,lw,Bfield,thkX,thkY,x,y,te,sys,flip_angle);
+        out.w1max=rfPulse.w1max;
+    else
+        out=sim_press(Npts,sw,Bfield,lw,sys,pressTau1,pressTau2);
+        out.ppm=out.ppm+shift_in_ppm;
+        out.w1max=0; % ideal PRESS has no shaped pulse amplitude
+    end
 
     % Save before the shift -
     save_out_mat=fullfile(output_folder,'matfiles_pre');
@@ -185,7 +203,9 @@ for met_nr=1:size(spinSysList,2)
     % Add shift here and later for every simulated
     %
     %-------------------------------------------------------------------------
-    out.fids=out.fids.*exp(-1i*2*pi*shift_in_points*(0:1:(size(out.fids,1)-1)).'/(size(out.fids,1)));
+    if useShaped
+        out.fids=out.fids.*exp(-1i*2*pi*shift_in_points*(0:1:(size(out.fids,1)-1)).'/(size(out.fids,1)));
+    end
 
     %-------------------------------------------------------------------------
     % add TMS ref
@@ -228,7 +248,11 @@ for met_nr=1:size(spinSysList,2)
 end
 
 fprintf('\nRunning fit_makeLCMBasis...\n\n');
-close(101)
+if useShaped
+    close(101);
+else
+    close all;
+end
 BASIS=fit_makeLCMBasis(save_out_mat_end, false, [output_folder, filesep, basis_name], vendor, sequence, vis_flag);
 copyfile(fullfile(output_folder,basis_name),fullfile(main_dir,'my_basis',basis_name));
 rmpath(genpath(main_dir));
