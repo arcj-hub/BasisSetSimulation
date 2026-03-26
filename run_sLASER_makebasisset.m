@@ -75,10 +75,9 @@ ToolboxCheck;
 % ************ INPUT PARAMETERS **********************************
 
 % Define the variable Basis_name at the beginning of your script
-basis_name='lcm_gamma_shapedpulse.basis'; %keep "_gamma_"
 main_dir=fileparts(mfilename("fullpath"));
 addpath(genpath(main_dir));
-output_folder='~/Desktop/makebasisset_output_shaped';
+output_folder='~/Desktop/make_basis_set';
 save_result=true;
 show_plots=false;
 vendor='Philips';
@@ -123,6 +122,16 @@ else
     vis_flag='off';
 end
 
+% Set output folder as a subfolder for either shaped or ideal RF pulse
+% simulations
+if useShaped
+    output_folder=fullfile(output_folder,'shaped');
+    basis_name='lcm_gamma_shapedpulse.basis'; %keep "_gamma_"
+else
+    output_folder=fullfile(output_folder,'ideal');
+    basis_name='lcm_gamma_idealpulse.basis';
+end
+
 if ~exist(output_folder,'dir')
     mkdir(output_folder);
 else
@@ -155,7 +164,6 @@ refjustforppmrange=sim_press(Npts,sw,Bfield,lw,sysRef,tau1,tau2);
 if ~useShaped
     refjustforppmrange.ppm=refjustforppmrange.ppm+shift_in_ppm;
 end
-%-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
 % shift
 ppm_range=ref.ppm(1)-ref.ppm(end);
@@ -247,13 +255,16 @@ for met_nr=1:size(spinSysList,2)
 
 end
 
-fprintf('\nRunning fit_makeLCMBasis...\n\n');
 if useShaped
     close(101);
 else
     close all;
 end
+
+fprintf('\nRunning fit_makeLCMBasis...\n\n');
+
 BASIS=fit_makeLCMBasis(save_out_mat_end, false, [output_folder, filesep, basis_name], vendor, sequence, vis_flag);
-copyfile(fullfile(output_folder,basis_name),fullfile(main_dir,'my_basis',basis_name));
+copyfile(fullfile(output_folder,basis_name), fullfile(main_dir,'my_basis',basis_name));
+
 rmpath(genpath(main_dir));
 fprintf('\nDone! Output saved in ''%s''\n\n',output_folder);
