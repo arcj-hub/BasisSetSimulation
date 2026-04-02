@@ -72,6 +72,7 @@ close all;
 
 ToolboxCheck;
 
+
 % ************ INPUT PARAMETERS **********************************
 
 % Define the variable Basis_name at the beginning of your script
@@ -101,7 +102,6 @@ y=linspace(-fovY/2,fovY/2,nY);
 te=32;%timing of the pulse sequence [ms]
 centreFreq=2.02; %Centre frequency of MR spectrum [ppm]
 B1max=[]; %B1max for refocusing pulses; if empty, B1max is calculated automatically
-
 fovX=-x(1)+x(end);
 fovY=-y(1)+y(end);
 
