@@ -144,12 +144,15 @@ tau1=15; %fake timing
 tau2=13; %fake timing
 refjustforppmrange=sim_press(Npts,sw,Bfield,lw,sysRef,tau1,tau2);
 %-------------------------------------------------------------------------
+
+%------------------------------------------------
+% Shift
+%------------------------------------------------
+freqShift_hz=shift_in_ppm*(Bfield*42.577478); % in Hz
 %-------------------------------------------------------------------------
-% shift
-ppm_range=ref.ppm(1)-ref.ppm(end);
-ppm_per_point=ppm_range/size(ref.ppm,2);
-shift_in_points=round(shift_in_ppm/ppm_per_point);
-ref.fids=ref.fids.*exp(-1i*2*pi*shift_in_points*(0:1:(size(ref.fids,1)-1)).'/(size(ref.fids,1)));
+% Add shift here for the ref
+%-------------------------------------------------------------------------
+ref.fids=ref.fids.*exp(-(1i*2*pi*freqShift_hz).*ref.t).';
 %--------------------------------------------------------------------------
 % Additional Metabolites
 [sysETH,sysAcetate,sysAcac,sysSucc,sysGlyc,sysVal,sysAceton,sysbHBHM]=define_spin_systems;
@@ -182,10 +185,9 @@ for met_nr=1:size(spinSysList,2)
     save([save_out_mat,filesep,spinSys],'out');
 
     %-------------------------------------------------------------------------
-    % Add shift here and later for every simulated
-    %
+    % Add shift here for every simulated metabolite
     %-------------------------------------------------------------------------
-    out.fids=out.fids.*exp(-1i*2*pi*shift_in_points*(0:1:(size(out.fids,1)-1)).'/(size(out.fids,1)));
+    out.fids=out.fids.*exp(-(1i*2*pi*freqShift_hz).*ref.t).';
 
     %-------------------------------------------------------------------------
     % add TMS ref
