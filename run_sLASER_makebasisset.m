@@ -80,6 +80,7 @@ main_dir=fileparts(mfilename("fullpath"));
 addpath(genpath(main_dir));
 output_folder='~/Desktop/makebasisset_output';
 save_result=true;
+complete_run=true; % 
 show_plots=false;
 vendor='Philips';
 sequence='sLASER';
@@ -120,13 +121,26 @@ else
     vis_flag='off';
 end
 
-if ~exist(output_folder,'dir')
-    mkdir(output_folder);
-else
+
+% if all should be rerun then remove the output folder 
+if exist(output_folder,'dir') && complete_run
     rmdir(output_folder,'s');
-    mkdir(output_folder);
 end
 
+% folders for saving
+save_out_mat      = fullfile(output_folder,'matfiles_pre');
+save_figure       = fullfile(output_folder,'figures');
+save_raw          = fullfile(output_folder,'raw');
+save_out_mat_end  = fullfile(output_folder,'matfiles_post');
+
+folders = {save_out_mat, save_figure, save_raw, save_out_mat_end};
+
+% create folders if needed
+for k = 1:numel(folders)
+    if ~exist(folders{k},'dir')
+        mkdir(folders{k});
+    end
+end
 %--------------------------------------------------------------------------
 %Load RF waveform
 %--------------------------------------------------------------------------
@@ -178,10 +192,6 @@ for met_nr=1:size(spinSysList,2)
     out.w1max=rfPulse.w1max;
 
     % Save before the shift -
-    save_out_mat=fullfile(output_folder,'matfiles_pre');
-    if ~exist(save_out_mat,'dir')
-        mkdir(save_out_mat);
-    end
     save([save_out_mat,filesep,spinSys],'out');
 
     %-------------------------------------------------------------------------
@@ -193,11 +203,6 @@ for met_nr=1:size(spinSysList,2)
     % add TMS ref
     %-------------------------------------------------------------------------
     out=op_addScans(out,ref);
-
-    save_figure=fullfile(output_folder,'figures');
-    if ~exist(save_figure,'dir')
-        mkdir(save_figure);
-    end
 
     h=figure('Visible',vis_flag);
     clf(h);
@@ -211,20 +216,13 @@ for met_nr=1:size(spinSysList,2)
 
     out.name=spinSys;
     out.centreFreq=centreFreq; % This is needed for the check within fit_LCMmakeBasis.
-    save_raw=fullfile(output_folder,'raw');
+
 
     if save_result
-        if ~exist(save_raw,'dir')
-            mkdir(save_raw);
-        end
         RF=io_writelcmraw(out,[save_raw, filesep, spinSys '.raw'],spinSys);
     end
 
     % Saving after shift
-    save_out_mat_end=fullfile(output_folder,'matfiles_post');
-    if ~exist(save_out_mat_end,'dir')
-        mkdir(save_out_mat_end);
-    end
     save([save_out_mat_end,filesep,spinSys],'out');
 
 end
