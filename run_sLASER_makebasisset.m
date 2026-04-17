@@ -78,7 +78,7 @@ ToolboxCheck;
 basis_name='lcm_gamma_new.basis'; %keep "_gamma_"
 main_dir=fileparts(mfilename("fullpath"));
 addpath(genpath(main_dir));
-output_folder='~/Desktop/makebasisset_output';
+output_folder=fullfile(main_dir,'my_basis'); % or select a folder somewhere else e.g. '~/Desktop/makebasisset_output'
 save_result=true;
 complete_run=true; % 
 show_plots=false;
@@ -230,6 +230,6 @@ end
 fprintf('\nRunning fit_makeLCMBasis...\n\n');
 close(101)
 BASIS=fit_makeLCMBasis(save_out_mat_end, false, [output_folder, filesep, basis_name], vendor, sequence, vis_flag);
-copyfile(fullfile(output_folder,basis_name),fullfile(main_dir,'my_basis',basis_name));
+
 rmpath(genpath(main_dir));
 fprintf('\nDone! Output saved in ''%s''\n\n',output_folder);
