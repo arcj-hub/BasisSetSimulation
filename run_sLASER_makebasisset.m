@@ -102,7 +102,7 @@ x=linspace(-fovX/2,fovX/2,nX); %X positions to simulate [cm]
 y=linspace(-fovY/2,fovY/2,nY);
 te=32;%timing of the pulse sequence [ms]
 centreFreq=2.02; %Centre frequency of MR spectrum [ppm]
-B1max=[]; %B1max for refocusing pulses; if empty, B1max is calculated automatically
+B1max=[22]; %B1max for refocusing pulses; if empty, B1max is calculated automatically
 
 fovX=-x(1)+x(end);
 fovY=-y(1)+y(end);
@@ -115,6 +115,120 @@ spinSysList={'PE', 'Asc', 'Scyllo','Glu','Cr','NAA','NAAG','PCr','GSH','Gly','Gl
 shift_in_ppm=(4.65-centreFreq);
 
 % ************ END OF INPUT PARAMETERS BY USER **********************************
+
+%%JA edit: confirmation popup with current-run and final basis-set contents
+current_run_summary=strjoin(spinSysList,', ');
+if numel(current_run_summary) > 260
+    current_run_summary=[current_run_summary(1:260) ' ...'];
+end
+
+existing_basis_folder=fullfile(output_folder,'matfiles_post');
+existing_basis_mets={};
+if exist(existing_basis_folder,'dir') && ~complete_run
+    existing_basis_files=dir(fullfile(existing_basis_folder,'*.mat'));
+    existing_basis_mets=cell(size(existing_basis_files));
+    for existing_idx=1:numel(existing_basis_files)
+        [~,existing_basis_mets{existing_idx},~]=fileparts(existing_basis_files(existing_idx).name);
+    end
+end
+
+if complete_run
+    final_basis_mets=spinSysList(:);
+else
+    final_basis_mets=unique([existing_basis_mets(:); spinSysList(:)],'stable');
+end
+
+final_basis_summary=strjoin(final_basis_mets',', ');
+if numel(final_basis_summary) > 260
+    final_basis_summary=[final_basis_summary(1:260) ' ...'];
+end
+
+confirmation_lines={
+    'Are you sure you want to simulate a basis set with:'
+    ' '
+    ['Basis file: ' basis_name]
+    ['Output folder: ' output_folder]
+    ['Vendor / Sequence: ' vendor ' / ' sequence]
+    ['Refocusing waveform: ' refocWaveform]
+    ['Flip angle: ' num2str(flip_angle) ' deg']
+    ['Refocusing duration: ' num2str(refTp) ' ms']
+    ['B-field: ' num2str(Bfield) ' T']
+    ['TE: ' num2str(te) ' ms']
+    ['Npts / SW / LW: ' num2str(Npts) ' / ' num2str(sw) ' Hz / ' num2str(lw) ' Hz']
+    ['Slice thickness X/Y: ' num2str(thkX) ' / ' num2str(thkY) ' cm']
+    ['FOV X/Y: ' num2str(fovX) ' / ' num2str(fovY) ' cm']
+    ['Grid points X/Y: ' num2str(nX) ' / ' num2str(nY)]
+    ['Centre frequency: ' num2str(centreFreq) ' ppm']
+    ['B1max: ' mat2str(B1max)]
+    ' '
+    ['You are now simulating: ' current_run_summary]
+    ['Your final basis set will contain: ' final_basis_summary]
+    };
+
+confirmation_text=sprintf('%s\n',confirmation_lines{:});
+
+popup_handle=dialog( ...
+    'Name','Confirm Basis Set Simulation', ...
+    'Position',[200 120 760 520], ...
+    'Color',[0.97 0.97 0.99], ...
+    'WindowStyle','modal');
+setappdata(popup_handle,'popup_choice','No');
+
+uicontrol( ...
+    'Parent',popup_handle, ...
+    'Style','text', ...
+    'String','Basis Set Simulation Check', ...
+    'Position',[25 475 320 26], ...
+    'HorizontalAlignment','left', ...
+    'FontSize',16, ...
+    'FontWeight','bold', ...
+    'BackgroundColor',[0.97 0.97 0.99], ...
+    'ForegroundColor',[0.12 0.18 0.32]);
+
+uicontrol( ...
+    'Parent',popup_handle, ...
+    'Style','edit', ...
+    'Max',2, ...
+    'Min',0, ...
+    'Enable','inactive', ...
+    'String',confirmation_text, ...
+    'Position',[25 85 710 380], ...
+    'HorizontalAlignment','left', ...
+    'FontSize',12, ...
+    'BackgroundColor',[1 1 1]);
+
+uicontrol( ...
+    'Parent',popup_handle, ...
+    'Style','pushbutton', ...
+    'String','No', ...
+    'Position',[520 22 90 38], ...
+    'FontSize',12, ...
+    'Callback',@(src,evt) local_set_popup_choice(popup_handle,'No'));
+
+uicontrol( ...
+    'Parent',popup_handle, ...
+    'Style','pushbutton', ...
+    'String','Yes', ...
+    'Position',[625 22 90 38], ...
+    'FontSize',12, ...
+    'FontWeight','bold', ...
+    'BackgroundColor',[0.23 0.56 0.34], ...
+    'ForegroundColor',[1 1 1], ...
+    'Callback',@(src,evt) local_set_popup_choice(popup_handle,'Yes'));
+
+set(popup_handle,'CloseRequestFcn',@(src,evt) local_set_popup_choice(popup_handle,'No'));
+uiwait(popup_handle);
+
+popup_choice=getappdata(popup_handle,'popup_choice');
+if ishandle(popup_handle)
+    delete(popup_handle);
+end
+
+if ~strcmp(popup_choice,'Yes')
+    fprintf('\nSimulation cancelled by user before launch.\n\n');
+    return;
+end
+
 
 if show_plots
     vis_flag='on'; %#ok<*UNRCH>
@@ -234,3 +348,10 @@ BASIS=fit_makeLCMBasis(save_out_mat_end, false, [output_folder, filesep, basis_n
 
 rmpath(genpath(main_dir));
 fprintf('\nDone! Output saved in ''%s''\n\n',output_folder);
+
+function local_set_popup_choice(popup_handle,choice_value)
+if ishandle(popup_handle)
+    setappdata(popup_handle,'popup_choice',choice_value);
+    uiresume(popup_handle);
+end
+end
