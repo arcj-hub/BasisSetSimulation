@@ -70,7 +70,7 @@ clear;
 clc;
 close all;
 
-ToolboxCheck;
+
 
 % ************ INPUT PARAMETERS **********************************
 
@@ -78,6 +78,7 @@ ToolboxCheck;
 basis_name='lcm_gamma_new.basis'; %keep "_gamma_"
 main_dir=fileparts(mfilename("fullpath"));
 addpath(genpath(main_dir));
+ToolboxCheck;
 output_folder=fullfile(main_dir,'my_basis'); % or select a folder somewhere else e.g. '~/Desktop/makebasisset_output'
 save_result=true;
 complete_run=true; % 
