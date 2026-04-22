@@ -78,8 +78,9 @@ ToolboxCheck;
 basis_name='lcm_gamma_new.basis'; %keep "_gamma_"
 main_dir=fileparts(mfilename("fullpath"));
 addpath(genpath(main_dir));
-output_folder='~/Desktop/makebasisset_output';
+output_folder=fullfile(main_dir,'my_basis'); % or select a folder somewhere else e.g. '~/Desktop/makebasisset_output'
 save_result=true;
+complete_run=true; % 
 show_plots=false;
 vendor='Philips';
 sequence='sLASER';
@@ -120,13 +121,26 @@ else
     vis_flag='off';
 end
 
-if ~exist(output_folder,'dir')
-    mkdir(output_folder);
-else
+
+% if all should be rerun then remove the output folder 
+if exist(output_folder,'dir') && complete_run
     rmdir(output_folder,'s');
-    mkdir(output_folder);
 end
 
+% folders for saving
+save_out_mat      = fullfile(output_folder,'matfiles_pre');
+save_figure       = fullfile(output_folder,'figures');
+save_raw          = fullfile(output_folder,'raw');
+save_out_mat_end  = fullfile(output_folder,'matfiles_post');
+
+folders = {save_out_mat, save_figure, save_raw, save_out_mat_end};
+
+% create folders if needed
+for k = 1:numel(folders)
+    if ~exist(folders{k},'dir')
+        mkdir(folders{k});
+    end
+end
 %--------------------------------------------------------------------------
 %Load RF waveform
 %--------------------------------------------------------------------------
@@ -144,12 +158,15 @@ tau1=15; %fake timing
 tau2=13; %fake timing
 refjustforppmrange=sim_press(Npts,sw,Bfield,lw,sysRef,tau1,tau2);
 %-------------------------------------------------------------------------
+
+%------------------------------------------------
+% Shift
+%------------------------------------------------
+freqShift_hz=shift_in_ppm*(Bfield*42.577478); % in Hz
 %-------------------------------------------------------------------------
-% shift
-ppm_range=ref.ppm(1)-ref.ppm(end);
-ppm_per_point=ppm_range/size(ref.ppm,2);
-shift_in_points=round(shift_in_ppm/ppm_per_point);
-ref.fids=ref.fids.*exp(-1i*2*pi*shift_in_points*(0:1:(size(ref.fids,1)-1)).'/(size(ref.fids,1)));
+% Add shift here for the ref
+%-------------------------------------------------------------------------
+ref.fids=ref.fids.*exp(-(1i*2*pi*freqShift_hz).*ref.t).';
 %--------------------------------------------------------------------------
 % Additional Metabolites
 [sysETH,sysAcetate,sysAcac,sysSucc,sysGlyc,sysVal,sysAceton,sysbHBHM]=define_spin_systems;
@@ -175,27 +192,17 @@ for met_nr=1:size(spinSysList,2)
     out.w1max=rfPulse.w1max;
 
     % Save before the shift -
-    save_out_mat=fullfile(output_folder,'matfiles_pre');
-    if ~exist(save_out_mat,'dir')
-        mkdir(save_out_mat);
-    end
     save([save_out_mat,filesep,spinSys],'out');
 
     %-------------------------------------------------------------------------
-    % Add shift here and later for every simulated
-    %
+    % Add shift here for every simulated metabolite
     %-------------------------------------------------------------------------
-    out.fids=out.fids.*exp(-1i*2*pi*shift_in_points*(0:1:(size(out.fids,1)-1)).'/(size(out.fids,1)));
+    out.fids=out.fids.*exp(-(1i*2*pi*freqShift_hz).*ref.t).';
 
     %-------------------------------------------------------------------------
     % add TMS ref
     %-------------------------------------------------------------------------
     out=op_addScans(out,ref);
-
-    save_figure=fullfile(output_folder,'figures');
-    if ~exist(save_figure,'dir')
-        mkdir(save_figure);
-    end
 
     h=figure('Visible',vis_flag);
     clf(h);
@@ -209,20 +216,13 @@ for met_nr=1:size(spinSysList,2)
 
     out.name=spinSys;
     out.centreFreq=centreFreq; % This is needed for the check within fit_LCMmakeBasis.
-    save_raw=fullfile(output_folder,'raw');
+
 
     if save_result
-        if ~exist(save_raw,'dir')
-            mkdir(save_raw);
-        end
         RF=io_writelcmraw(out,[save_raw, filesep, spinSys '.raw'],spinSys);
     end
 
     % Saving after shift
-    save_out_mat_end=fullfile(output_folder,'matfiles_post');
-    if ~exist(save_out_mat_end,'dir')
-        mkdir(save_out_mat_end);
-    end
     save([save_out_mat_end,filesep,spinSys],'out');
 
 end
@@ -230,6 +230,6 @@ end
 fprintf('\nRunning fit_makeLCMBasis...\n\n');
 close(101)
 BASIS=fit_makeLCMBasis(save_out_mat_end, false, [output_folder, filesep, basis_name], vendor, sequence, vis_flag);
-copyfile(fullfile(output_folder,basis_name),fullfile(main_dir,'my_basis',basis_name));
+
 rmpath(genpath(main_dir));
 fprintf('\nDone! Output saved in ''%s''\n\n',output_folder);
