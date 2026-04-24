@@ -29,23 +29,23 @@ initialized.
 
 ### Option 1 (recommended): clone with submodules
 
-git clone --recurse-submodules https://github.com/arcj-hub/BasisSetSimulation.git
-cd BasisSetSimulation
+`git clone --recurse-submodules https://github.com/arcj-hub/BasisSetSimulation.git'
+cd BasisSetSimulation`
 
 ### Option 2: initialize after a normal clone
 
 git clone https://github.com/arcj-hub/BasisSetSimulation.git
-cd BasisSetSimulation
-git submodule update --init --recursive
+`cd BasisSetSimulation`
+`git submodule update --init --recursiv`e
 
 ### If dependencies/FID-A is still empty
 
-git submodule sync --recursive
-git submodule update --init --recursive --force
+`git submodule sync --recursive
+git submodule update --init --recursive --force`
 
 ### Updating FID-A to the commit pinned by this repo
 
-git submodule update --recursive
+`git submodule update --recursive`
 
 ### Note
 
