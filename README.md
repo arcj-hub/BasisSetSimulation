@@ -18,7 +18,39 @@ To clone the repository, run the following command:
 
 Required dependencies:
 
-- [FID-A](https://github.com/CIC-methods/FID-A) (this is included in the repository)
+- [FID-A](https://github.com/CIC-methods/FID-A) 
+
+### Getting FID-A (Important)
+
+This repository uses FID-A as a Git submodule at dependencies/FID-A.
+
+If you clone the repo normally, that folder may appear empty until submodules are
+initialized.
+
+### Option 1 (recommended): clone with submodules
+
+git clone --recurse-submodules https://github.com/arcj-hub/BasisSetSimulation.git
+cd BasisSetSimulation
+
+### Option 2: initialize after a normal clone
+
+git clone https://github.com/arcj-hub/BasisSetSimulation.git
+cd BasisSetSimulation
+git submodule update --init --recursive
+
+### If dependencies/FID-A is still empty
+
+git submodule sync --recursive
+git submodule update --init --recursive --force
+
+### Updating FID-A to the commit pinned by this repo
+
+git submodule update --recursive
+
+### Note
+
+Downloading this repository as a ZIP from GitHub does not reliably fetch submodule
+contents. Use git clone with submodule commands above.
 
 ## Directory Structure
 
@@ -38,7 +70,7 @@ Place any new metabolite spin-system definitions here (automatically from run_ge
 
 Add the shaped refocusing pulse files provided by your scanner vendor
 
-### `run_sLASER_makebaseset.m`
+### `run_sLASER_makebasisset.m`
 
 Main simulation script
 
