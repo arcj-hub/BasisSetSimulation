@@ -36,7 +36,7 @@ cd BasisSetSimulation`
 
 git clone https://github.com/arcj-hub/BasisSetSimulation.git
 `cd BasisSetSimulation`
-`git submodule update --init --recursiv`e
+`git submodule update --init --recursive'
 
 ### If dependencies/FID-A is still empty
 
