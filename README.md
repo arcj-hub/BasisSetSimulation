@@ -34,7 +34,7 @@ cd BasisSetSimulation`
 
 ### Option 2: initialize after a normal clone
 
-git clone https://github.com/arcj-hub/BasisSetSimulation.git
+`git clone https://github.com/arcj-hub/BasisSetSimulation.git`
 `cd BasisSetSimulation`
 `git submodule update --init --recursive`
 
