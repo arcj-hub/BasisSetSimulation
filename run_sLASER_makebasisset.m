@@ -80,8 +80,8 @@ main_dir=fileparts(mfilename("fullpath"));
 addpath(genpath(main_dir));
 ToolboxCheck;
 output_folder=fullfile(main_dir,'my_basis'); % or select a folder somewhere else e.g. '~/Desktop/makebasisset_output'
-save_result=true;
-complete_run=true; % true=run full metabolite loop and generate complete basis set % false=run targeted simulations and append outputs to existing basis set
+save_result=true; 
+complete_run=true; % true  -> overwrite mode: runs sim_spinsys for all metabolites to build full basis set: % false -> append mode: runs sim_spinsys for selected metabolites and adds to existing set
 show_plots=false;
 vendor='Philips';
 sequence='sLASER';
