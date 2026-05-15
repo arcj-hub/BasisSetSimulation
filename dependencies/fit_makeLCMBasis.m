@@ -43,7 +43,7 @@ function BASIS = fit_makeLCMBasis(folder,addMMFlag,fullpath_to_save_basis,vendor
 %
 % DC offset correction?
 %
-do_offset_correction=false;
+do_offset_correction=true;
 if do_offset_correction
     fprintf('DC offset correction: PPMOFF\n');
 end
