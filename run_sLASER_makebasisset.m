@@ -102,6 +102,7 @@ x=linspace(-fovX/2,fovX/2,nX); %X positions to simulate [cm]
 y=linspace(-fovY/2,fovY/2,nY);
 te=32;%timing of the pulse sequence [ms]
 centreFreq=2.02; %Centre frequency of MR spectrum [ppm]
+B1max=[22]; %B1max for refocusing pulses; if empty, B1max is calculated automatically
 
 fovX=-x(1)+x(end);
 fovY=-y(1)+y(end);
@@ -158,6 +159,7 @@ confirmation_lines={
     ['FOV X/Y: ' num2str(fovX) ' / ' num2str(fovY) ' cm']
     ['Grid points X/Y: ' num2str(nX) ' / ' num2str(nY)]
     ['Centre frequency: ' num2str(centreFreq) ' ppm']
+    ['B1max: ' mat2str(B1max)]
     ' '
     ['You are now simulating: ' current_run_summary]
     ['Your final basis set will contain: ' final_basis_summary]
@@ -234,9 +236,6 @@ else
     vis_flag='off';
 end
 
-% Choose the RF inversion point before clearing any previous output.
-rfPulse=io_loadRFwaveform(refocWaveform,'ref',0);
-
 
 % if all should be rerun then remove the output folder 
 if exist(output_folder,'dir') && complete_run
@@ -257,6 +256,11 @@ for k = 1:numel(folders)
         mkdir(folders{k});
     end
 end
+%--------------------------------------------------------------------------
+%Load RF waveform
+%--------------------------------------------------------------------------
+rfPulse=io_loadRFwaveform(refocWaveform,'ref',0,B1max);
+%--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 sysRef.J=0;
 sysRef.shifts=0;
