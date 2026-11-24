@@ -147,18 +147,19 @@ if ~isPhsMod
         w1max=0;
     end
 else
-    %Suggest the first local minimum of Mz.
+    % Suggest the first sampled point where Mz rises after its initial dip.
     [mv,sc]=bes(rf,Tp*1000,'b',f0/1000,0,5,40000);
     first_min=find(diff(mv(3,:))>0,1,'first');
     if isempty(first_min)
         [~,selected_ind]=min(mv(3,:));
     else
-        selected_ind=first_min+1;
+        selected_ind=first_min;
     end
     h=figure(101);
-    set(h,'Visible','on','Name','Choose RF inversion point','NumberTitle','off');
+    set(h,'Visible','on','Name','Choose RF inversion point','NumberTitle','off','Color','w');
     clf(h);
-    plot(sc,mv(3,:));
+    plot(sc,mv(3,:),'LineWidth',1.5);
+    set(gca,'Color','w');
     hold on;
     point_marker=plot(sc(selected_ind),mv(3,selected_ind),'ro', ...
         'MarkerFaceColor','r','MarkerSize',8);
