@@ -10,7 +10,8 @@
 % information.  This function finds the time-bandwidth
 % product (tbw) and the time-w1 product (tw1) of the pulse,
 % and stores this information in the header fields of the
-% output RF structure.
+% output RF structure. For phase-modulated pulses, the inversion plot
+% suggests an amplitude and lets the user select a different point.
 %
 % INPUTS:
 % filename  = filename of RF pulse waveform text file.  Can be in Siemens
@@ -30,16 +31,11 @@
 %             a pulse that does not have an exact flip angle of 90 or 180
 %             degrees (Thanks to Eric Plitman for help with this feature).
 % f0        = centre frequency of the rf pulse [Hz].  Optional. Default=0.
-% B1max     = Available B1 max at the scanner in mikro T.  Optional. Default=0.
 %
 % OUTPUTS:
 % RF_struct = RF pulse waveform in FID-A rf pulse structure format.
 
-function RF_struct=io_loadRFwaveform(filename,type,f0,B1max)
-
-if nargin<4
-    B1max=[];
-end
+function RF_struct=io_loadRFwaveform(filename,type,f0)
 
 if nargin<3
     f0=0;
@@ -129,55 +125,83 @@ rf(:,2)=rf(:,2)./max(rf(:,2));
 
 Tp=0.005;  %assume a 5 ms rf pulse;
 
-if ~isempty(B1max)
-    %B1max is given in mikro tesla
-    gamma_H_Hz_T=42.577*1e6;
-    w1max=B1max*1e-6*gamma_H_Hz_T;% already in [Hz]
-    tw1=Tp*w1max;
-else
-    if ~isPhsMod
-        %The pulse is not phase modulated, so we can calculate the w1max:
-        %find the B1 max of the pulse in [kHz]:
-        if ischar(type)
-            switch type
-                case 'exc'
-                    flipCyc=0.25; %90 degrees is 0.25 cycles;
-                case 'ref'
-                    flipCyc=0.5;  %180 degress is 0.5 cycles;
-                case 'inv'
-                    flipCyc=0.5;  %180 degrees is 0.5 cycles;
-            end
-        elseif isnumeric(type) %assume that a flip angle (in degrees) was given
-            flipCyc=type/360;
+if ~isPhsMod
+    %The pulse is not phase modulated, so we can calculate the w1max:
+    %find the B1 max of the pulse in [kHz]:
+    if ischar(type)
+        switch type
+            case 'exc'
+                flipCyc=0.25; %90 degrees is 0.25 cycles;
+            case 'ref'
+                flipCyc=0.5; %180 degress is 0.5 cycles;
+            case 'inv'
+                flipCyc=0.5; %180 degrees is 0.5 cycles;
         end
-        intRF=sum(rf(:,2).*((-2*(rf(:,1)>179))+1))/length(rf(:,2));
-        if intRF~=0
-            w1max=flipCyc/(intRF*Tp); %w1max is in [Hz]
-        else
-            w1max=0;
-        end
-        tw1=Tp*w1max;
-    else
-        %The pulse is phase modulated, so we will need to run some test to find
-        %out the w1max;  To do this, we can plot Mz as a function of w1 and
-        %find the value of w1 that results in the desired flip angle.
-        [mv,sc]=bes(rf,Tp*1000,'b',f0/1000,0,5,40000);
-        % Find the first (lowest index) minimum value of mz (mv(3,:))
-        min_mz_ind=find(diff(mv(3,:))>0,1,'first') + 1;
-        w1max=sc(min_mz_ind);
-        h=figure(101);
-        clf(h);
-        h.Name='Find w1 for desired flip angle';
-        hold on;
-        plot(sc,mv(3,:));
-        scatter(sc(min_mz_ind),mv(3,min_mz_ind),'r','filled');
-        hold off;
-        xlabel('\omega_{1} (kHz)');
-        ylabel('{\it{M}}_{z}');
-        w1max=w1max*1000; %convert w1max to [Hz]
-        tw1=Tp*w1max;
+    elseif isnumeric(type) %assume that a flip angle (in degrees) was given
+        flipCyc=type/360;
     end
+    intRF=sum(rf(:,2).*((-2*(rf(:,1)>179))+1))/length(rf(:,2));
+    if intRF~=0
+        w1max=flipCyc/(intRF*Tp); %w1max is in [Hz]
+    else
+        w1max=0;
+    end
+else
+    %Suggest the first local minimum of Mz.
+    [mv,sc]=bes(rf,Tp*1000,'b',f0/1000,0,5,40000);
+    first_min=find(diff(mv(3,:))>0,1,'first');
+    if isempty(first_min)
+        [~,selected_ind]=min(mv(3,:));
+    else
+        selected_ind=first_min+1;
+    end
+    h=figure(101);
+    set(h,'Visible','on','Name','Choose RF inversion point','NumberTitle','off');
+    clf(h);
+    plot(sc,mv(3,:));
+    hold on;
+    point_marker=plot(sc(selected_ind),mv(3,selected_ind),'ro', ...
+        'MarkerFaceColor','r','MarkerSize',8);
+    hold off;
+    xlabel('\omega_{1} (kHz)');
+    ylabel('{\it{M}}_{z}');
+    title(sprintf('RF inversion calibration step (for a %.2f ms pulse)',Tp*1000));
+    drawnow;
+
+    choice=questdlg(sprintf(['Suggested point: %.4f kHz.\n' ...
+        'Do you want to change the point where full inversion is achieved?'], ...
+        sc(selected_ind)), ...
+        'Choose RF inversion point','Yes','No','No');
+    if strcmp(choice,'Yes')
+        while true
+            figure(h);
+            title(sprintf('RF inversion calibration step (for a %.2f ms pulse): click a point',Tp*1000));
+            [clicked_w1,~,button]=ginput(1);
+            if isempty(clicked_w1) || button~=1
+                error('RF inversion point selection was cancelled.');
+            end
+            [~,candidate_ind]=min(abs(sc-clicked_w1));
+            set(point_marker,'XData',sc(candidate_ind),'YData',mv(3,candidate_ind));
+            title(sprintf('RF inversion calibration step (for a %.2f ms pulse)',Tp*1000));
+            drawnow;
+
+            choice=questdlg(sprintf('Selected point: %.4f kHz.\nUse this point?', ...
+                sc(candidate_ind)), ...
+                'Confirm RF inversion point','Yes','No','Yes');
+            if strcmp(choice,'Yes')
+                selected_ind=candidate_ind;
+                break;
+            elseif ~strcmp(choice,'No')
+                error('RF inversion point selection was cancelled.');
+            end
+        end
+    elseif ~strcmp(choice,'No')
+        error('RF inversion point selection was cancelled.');
+    end
+    fprintf('RF inversion point: %.4f kHz.\n',sc(selected_ind));
+    w1max=sc(selected_ind)*1000; %convert kHz to Hz
 end
+tw1=Tp*w1max;
 %now it's time to find out the time-bandwidth product:
 %First make a high resolution plot the pulse profile over a wide bandwidth:
 [mv,sc]=bes(rf,Tp*1000,'f',w1max/1000,-5+f0/1000,5+f0/1000,100000);
