@@ -153,7 +153,7 @@ else
     if isempty(first_min)
         [~,selected_ind]=min(mv(3,:));
     else
-        selected_ind=first_min+1;
+        selected_ind=first_min;
     end
     h=figure(101);
     set(h,'Visible','on','Name','Choose RF inversion point','NumberTitle','off');
